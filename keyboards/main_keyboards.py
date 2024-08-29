@@ -10,14 +10,6 @@ def main_kb() -> InlineKeyboardMarkup:
     )
     return kb.as_markup()
 
-def bulletin_board_kb() -> InlineKeyboardMarkup:
-    buttons = [
-        [types.InlineKeyboardButton(text="Добавить объявление", callback_data="add_an_advert")],
-        [types.InlineKeyboardButton(text="Домой", callback_data = "move_to_main_menu")]
-    ]
-    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
-    return keyboard
-
 def move_to_main_menu_board_kb() -> InlineKeyboardMarkup:
     kb = InlineKeyboardBuilder()
     kb.add(types.InlineKeyboardButton(

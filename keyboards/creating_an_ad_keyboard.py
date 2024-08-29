@@ -1,16 +1,16 @@
 from aiogram import types
 from aiogram.types import InlineKeyboardMarkup
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-def creating_an_ad_1() -> InlineKeyboardMarkup:
+def start_creating_an_ad() -> InlineKeyboardMarkup:
     buttons = [
         [types.InlineKeyboardButton(text="Домой", callback_data="move_to_main_menu")]
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
 
-def creating_an_ad_2() -> InlineKeyboardMarkup:
+def bulletin_board_kb() -> InlineKeyboardMarkup:
     buttons = [
+        [types.InlineKeyboardButton(text="Добавить объявление", callback_data="add_an_advert")],
         [types.InlineKeyboardButton(text="Домой", callback_data="move_to_main_menu")]
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -18,8 +18,8 @@ def creating_an_ad_2() -> InlineKeyboardMarkup:
 
 def end_creating_ad() -> InlineKeyboardMarkup:
     buttons = [
-        [types.InlineKeyboardButton(text="Отменить", callback_data="cancel_ad_creating")],
-        [types.InlineKeyboardButton(text="Отправить", callback_data="send_ad")]
+        [types.InlineKeyboardButton(text="Отправить", callback_data="send_ad")],
+        [types.InlineKeyboardButton(text="Домой", callback_data="move_to_main_menu")]
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard

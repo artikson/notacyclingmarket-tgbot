@@ -8,7 +8,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 from config_reader import config
-from handlers import menu, creating_an_ad, common
+from handlers import common, creating_an_ad, bulletin_board
 
 async def main():
     # Включаем логирование, чтобы не пропустить важные сообщения
@@ -24,9 +24,7 @@ async def main():
     )
     dp = Dispatcher()
     
-    dp.include_routers(menu.router)
-    dp.include_routers(creating_an_ad.router)
-    dp.include_routers(common.router)
+    dp.include_routers(common.router, bulletin_board.router, creating_an_ad.router)
     # Запускаем бота и пропускаем все накопленные входящие
     # Да, этот метод можно вызвать даже если у вас поллинг
     await bot.delete_webhook(drop_pending_updates=True)
