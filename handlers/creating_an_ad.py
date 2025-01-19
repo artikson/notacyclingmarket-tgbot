@@ -157,5 +157,8 @@ async def ad_sending(callback: types.CallbackQuery, bot: Bot, state: FSMContext)
                 media=photo
             )
         await bot.send_media_group("@buyfixed", media=album_builder.build())
-    await callback.answer()
+    await callback.message.answer(
+        "<b>Успех!</b>\nВаше объявление успешно отправлено в канал!",
+        reply_markup=start_creating_an_ad()
+    )
     await state.clear()
