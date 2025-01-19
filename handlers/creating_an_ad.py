@@ -135,6 +135,6 @@ async def ad_sending(callback: types.CallbackQuery, bot: Bot, state: FSMContext)
             album_builder.add_photo(
                 media=photo
             )
-        await bot.send_media_group("@notacyclingmarket", media=album_builder.build())
+        await bot.send_media_group("@buyfixed", media=album_builder.build())
     await callback.answer()
     await state.clear()
