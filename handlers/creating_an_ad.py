@@ -15,12 +15,13 @@ router.message.middleware(AlbumMiddleware())
 class AddAnAd(StatesGroup):
     sending_ad_photos = State()
     sending_ad_description = State()
+    sending_ad_price = State()
     sending_ad = State()
 
 @router.callback_query(StateFilter(None), F.data == "add_an_advert")
 async def start_an_ad_creating(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer(
-        "<b>(1/?) Создание объявления</b>\nОтправьте фотографии вашего товара:",
+        "<b>(1/4) Создание объявления</b>\nОтправьте фотографии вашего товара:",
         reply_markup=start_creating_an_ad()
     )
     await state.set_state(AddAnAd.sending_ad_photos)
@@ -40,7 +41,7 @@ async def album_sended(
         file_id = msg.photo[-1].file_id
         media_group.append(file_id)
     await message.answer(
-        "<b>(2/?) Создание объявления</b>\nСпасибо. Теперь отправьте описание вашего товара:",
+        "<b>(2/4) Создание объявления</b>\nСпасибо. Теперь отправьте описание вашего товара:",
         reply_markup=start_creating_an_ad()
     )
     await state.update_data(sended_photos=media_group)
@@ -56,7 +57,7 @@ async def photo_sended(
 ):
     await state.update_data(sended_photos=message.photo[-1].file_id)
     await message.answer(
-        "<b>(2/?) Создание объявления</b>\nСпасибо. Теперь отправьте описание вашего товара:",
+        "<b>(2/4) Создание объявления</b>\nСпасибо. Теперь отправьте описание вашего товара:",
         reply_markup=start_creating_an_ad()
     )
     await state.set_state(AddAnAd.sending_ad_description)
@@ -83,29 +84,46 @@ async def description_sended(message: Message, state: FSMContext):
             caption = message.text
         )
     else:
-        album_builder = MediaGroupBuilder(
-            caption=message.text
-        )
+        album_builder = MediaGroupBuilder()
         for photo in user_data['sended_photos']:
             album_builder.add_photo(
                 media=photo
             )
         await message.answer_media_group(
-            album_builder.build(),
-            reply_markup=None
+            album_builder.build()
+        )
+        await message.answer(
+            message.text
         )
     await message.answer(
-        "<b>Публикация</b>\nВаше объявление выглядит так",
-        reply_markup=end_creating_ad()
+        "<b>(3/4) Создание объявления</b>\nТеперь укажите цену вашего товара (в формате числа):",
+        reply_markup=start_creating_an_ad()
     )
-    await state.update_data(sended_description=message.text)
-    await state.set_state(AddAnAd.sending_ad)
+    await state.set_state(AddAnAd.sending_ad_price)
 
 @router.message(AddAnAd.sending_ad_description)
 async def description_sended_incorrectly(message: Message):
     await message.answer(
-        "<b>Ошибка</b>\nПожалуйста, отправьте описание вашего товара\.",
+        "<b>Ошибка</b>\nПожалуйста, отправьте описание вашего товара.",
     )
+
+@router.message(
+    AddAnAd.sending_ad_price,
+    F.text
+)
+async def price_sended(message: Message, state: FSMContext):
+    try:
+        price = float(message.text)
+        await state.update_data(price=price)
+        await message.answer(
+            f"<b>(4/4) Создание объявления</b>\nЦена товара установлена: {price:.2f} ₽\nТеперь вы можете опубликовать объявление.",
+            reply_markup=end_creating_ad()
+        )
+        await state.set_state(AddAnAd.sending_ad)
+    except ValueError:
+        await message.answer(
+            "<b>Ошибка</b>\nПожалуйста, отправьте корректную цену в числовом формате."
+        )
 
 @router.callback_query(
     AddAnAd.sending_ad, 
@@ -113,20 +131,23 @@ async def description_sended_incorrectly(message: Message):
 )
 async def ad_sending(callback: types.CallbackQuery, bot: Bot, state: FSMContext):
     user_data = await state.get_data()
+    price_text = f"Цена: {user_data['price']:.2f} ₽\n" if 'price' in user_data else ""
     if type(user_data['sended_photos']) == str:
         await bot.send_photo(
-            "@notacyclingmarket", 
+            "@buyfixed", 
             photo=user_data['sended_photos'], 
             caption=(
-                f"Описание товара:\n{user_data['sended_description']}\n\n\n\n"
-                f"Информация о пользователе:\n{user_data['description_user_first_name']}\n"
+                f"{user_data['description_text']}\n\n"
+                f"{price_text}\n"
+                f"{user_data['description_user_first_name']}\n"
                 f"@{user_data['description_user_id']}"
             )
         )
     else:
         album_builder = MediaGroupBuilder(
             caption=(
-                f"Описание товара:\n{user_data['sended_description']}\n\n\n\n"
+                f"Описание товара:\n{user_data['description_text']}\n\n"
+                f"{price_text}\n"
                 f"Информация о пользователе:\n{user_data['description_user_first_name']}\n"
                 f"@{user_data['description_user_id']}"
             )
